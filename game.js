@@ -8,12 +8,17 @@ const engine = Engine.create();
 const world = engine.world;
 engine.gravity.y = 0;
 
+// Responsive canvas size
+const cols = 10;
+const rows = 10;
+const minDimension = Math.min(window.innerWidth, window.innerHeight) * 0.9; // 90% of smallest dimension
+const jewelSize = minDimension / cols;
+canvas.width = jewelSize * cols;
+canvas.height = jewelSize * rows;
+
 // Game variables
 let jewels = [];
 let score = 0;
-const jewelSize = 40;
-const cols = 10; // 10 columns
-const rows = 10; // 10 rows
 const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
 let selectedJewel = null;
 let swapping = false;
@@ -23,7 +28,7 @@ let jewelToSwap2 = null;
 let animatingJewels = [];
 let dropping = false;
 let lastClickTime = 0;
-const doubleClickThreshold = 300; // Milliseconds for double-click detection
+const doubleClickThreshold = 300;
 
 // Create a jewel (bomb uses circle shape)
 function addJewel(col, row, color, isBomb = false) {
@@ -134,7 +139,7 @@ function activateBomb(bomb) {
 // Check for any 3+ matches across the board and handle 5+ powerup
 function checkMatches() {
   const toRemove = new Set();
-  let bombCandidate = swapping ? jewelToSwap1 : null; // The jewel the player moved
+  let bombCandidate = swapping ? jewelToSwap1 : null;
 
   // Check all rows
   for (let row = 0; row < rows; row++) {
@@ -145,15 +150,13 @@ function checkMatches() {
       if (jewel && jewel.color === currentColor) {
         streak.push(jewel);
       } else {
-        if (streak.length >= 5 && bombCandidate && streak.some(j => j.col === bombCandidate.col && j.row === bombCandidate.row)) {
+        if (streak.length >= 5 && bombCandidate && streak.includes(bombCandidate)) {
           streak.forEach(j => toRemove.add(j));
-          // Replace bombCandidate with a bomb
-          if (!bombCandidate.isBomb) {
-            World.remove(world, bombCandidate.body);
-            jewels = jewels.filter(j => j !== bombCandidate);
-            addJewel(bombCandidate.col, bombCandidate.row, 'black', true);
-            bombCandidate = jewels.find(j => j.col === bombCandidate.col && j.row === bombCandidate.row);
-          }
+          const bombCol = bombCandidate.col;
+          const bombRow = bombCandidate.row;
+          World.remove(world, bombCandidate.body);
+          jewels = jewels.filter(j => j !== bombCandidate);
+          addJewel(bombCol, bombRow, 'black', true);
         } else if (streak.length >= 3) {
           streak.forEach(j => toRemove.add(j));
         }
@@ -161,14 +164,13 @@ function checkMatches() {
         currentColor = jewel ? jewel.color : null;
       }
     }
-    if (streak.length >= 5 && bombCandidate && streak.some(j => j.col === bombCandidate.col && j.row === bombCandidate.row)) {
+    if (streak.length >= 5 && bombCandidate && streak.includes(bombCandidate)) {
       streak.forEach(j => toRemove.add(j));
-      if (!bombCandidate.isBomb) {
-        World.remove(world, bombCandidate.body);
-        jewels = jewels.filter(j => j !== bombCandidate);
-        addJewel(bombCandidate.col, bombCandidate.row, 'black', true);
-        bombCandidate = jewels.find(j => j.col === bombCandidate.col && j.row === bombCandidate.row);
-      }
+      const bombCol = bombCandidate.col;
+      const bombRow = bombCandidate.row;
+      World.remove(world, bombCandidate.body);
+      jewels = jewels.filter(j => j !== bombCandidate);
+      addJewel(bombCol, bombRow, 'black', true);
     } else if (streak.length >= 3) {
       streak.forEach(j => toRemove.add(j));
     }
@@ -183,14 +185,13 @@ function checkMatches() {
       if (jewel && jewel.color === currentColor) {
         streak.push(jewel);
       } else {
-        if (streak.length >= 5 && bombCandidate && streak.some(j => j.col === bombCandidate.col && j.row === bombCandidate.row)) {
+        if (streak.length >= 5 && bombCandidate && streak.includes(bombCandidate)) {
           streak.forEach(j => toRemove.add(j));
-          if (!bombCandidate.isBomb) {
-            World.remove(world, bombCandidate.body);
-            jewels = jewels.filter(j => j !== bombCandidate);
-            addJewel(bombCandidate.col, bombCandidate.row, 'black', true);
-            bombCandidate = jewels.find(j => j.col === bombCandidate.col && j.row === bombCandidate.row);
-          }
+          const bombCol = bombCandidate.col;
+          const bombRow = bombCandidate.row;
+          World.remove(world, bombCandidate.body);
+          jewels = jewels.filter(j => j !== bombCandidate);
+          addJewel(bombCol, bombRow, 'black', true);
         } else if (streak.length >= 3) {
           streak.forEach(j => toRemove.add(j));
         }
@@ -198,14 +199,13 @@ function checkMatches() {
         currentColor = jewel ? jewel.color : null;
       }
     }
-    if (streak.length >= 5 && bombCandidate && streak.some(j => j.col === bombCandidate.col && j.row === bombCandidate.row)) {
+    if (streak.length >= 5 && bombCandidate && streak.includes(bombCandidate)) {
       streak.forEach(j => toRemove.add(j));
-      if (!bombCandidate.isBomb) {
-        World.remove(world, bombCandidate.body);
-        jewels = jewels.filter(j => j !== bombCandidate);
-        addJewel(bombCandidate.col, bombCandidate.row, 'black', true);
-        bombCandidate = jewels.find(j => j.col === bombCandidate.col && j.row === bombCandidate.row);
-      }
+      const bombCol = bombCandidate.col;
+      const bombRow = bombCandidate.row;
+      World.remove(world, bombCandidate.body);
+      jewels = jewels.filter(j => j !== bombCandidate);
+      addJewel(bombCol, bombRow, 'black', true);
     } else if (streak.length >= 3) {
       streak.forEach(j => toRemove.add(j));
     }
@@ -308,12 +308,18 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-// Handle clicks
-canvas.addEventListener('click', (e) => {
+// Handle clicks (and touches)
+canvas.addEventListener('click', handleInput);
+canvas.addEventListener('touchstart', handleInput, { passive: false });
+
+function handleInput(e) {
   if (swapping || animatingJewels.length > 0 || dropping) return;
+  e.preventDefault();
   const rect = canvas.getBoundingClientRect();
-  const clickX = e.clientX - rect.left;
-  const clickY = e.clientY - rect.top;
+  const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+  const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+  const clickX = clientX - rect.left;
+  const clickY = clientY - rect.top;
   const currentTime = Date.now();
 
   const clickedJewel = jewels.find(j => {
@@ -346,6 +352,6 @@ canvas.addEventListener('click', (e) => {
       selectedJewel = null;
     }
   }
-});
+}
 
 gameLoop();
